@@ -1,0 +1,35 @@
+---
+- name: download Kafka
+  get_url: url=http://apache-mirror.rbc.ru/pub/apache/kafka/0.9.0.0/kafka_2.11-0.9.0.0.tgz dest=/root/kafka_2.11-0.9.0.0.tgz
+
+- name: unpack Kafka
+  unarchive: copy=no src=/root/kafka_2.11-0.9.0.0.tgz dest=/opt
+
+- name: create a symlink to Kafka
+  file: state=link src=/opt/kafka_2.11-0.9.0.0 dest=/opt/kafka
+
+- name: create a kafka user
+  user: name=kafka shell=/bin/bash
+
+- name: create /var/lib/zookeeper-kafka
+  file: state=directory dest=/var/lib/zookeeper-kafka owner=kafka group=kafka
+
+- name: create /opt/kafka/logs
+  file: state=directory dest=/opt/kafka/logs owner=kafka group=kafka
+
+- name: put zookeeper config
+  template: src=zookeeper.properties dest=/opt/kafka/config/zookeeper.properties backup=yes
+
+- name: put zookeeper eye config
+  template: src=zookeeper.rb dest=/etc/eye/zookeeper.rb backup=yes
+  notify: reload eye
+
+- name: create /var/lib/kafka-logs
+  file: state=directory dest=/var/lib/kafka-logs owner=kafka group=kafka mode=0750
+
+- name: put kafka config
+  template: src=server.properties dest=/opt/kafka/config/server.properties backup=yes
+
+- name: put kafka eye config
+  template: src=kafka.rb dest=/etc/eye/kafka.rb backup=yes
+  notify: reload eye
